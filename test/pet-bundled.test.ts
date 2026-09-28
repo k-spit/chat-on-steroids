@@ -29,7 +29,7 @@ let temporary = '';
 beforeEach(async () => { durable.value = null; temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'cos-pets-bundled-')); await initPetLibrary(temporary, bundled); });
 afterEach(() => fs.rmSync(temporary, { recursive: true, force: true }));
 
-it.each([['hammy', 'Hammy'], ['capy', 'Capy']])('ships %s as a valid bundled pet that is off until enabled', (id, displayName) => {
+it.each([['hammy', 'Hammy'], ['capy', 'Capy'], ['spatz-sr4-1', 'Simson Spatz SR4-1']])('ships %s as a valid bundled pet that is off until enabled', (id, displayName) => {
   const pet = petLibraryState().pets.find(entry => entry.id === id);
   expect(pet).toMatchObject({ id, displayName, builtin: true, enabled: false });
   expect(setPetEnabled(id, true).pets.find(entry => entry.id === id)?.enabled).toBe(true);
