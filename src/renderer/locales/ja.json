@@ -2003,5 +2003,10 @@
   "Know when ChatGPT is waiting": "ChatGPT が待っているときにわかる",
   "When ChatGPT asks you to allow a tool, the chat tells you instead of standing still.": "ChatGPT がツールの許可を求めると、止まったままにせずチャットがお知らせします。",
   "One connection control": "ひとつの接続コントロール",
-  "A small capsule in the sidebar shows the connection and tells you if it drops.": "サイドバーの小さなカプセルが接続を表示し、切断されるとお知らせします。"
+  "A small capsule in the sidebar shows the connection and tells you if it drops.": "サイドバーの小さなカプセルが接続を表示し、切断されるとお知らせします。",
+  "Unattended VPS": "無人 VPS",
+  "Run long jobs on a dedicated remote CoS host without babysitting ordinary connector prompts.": "専用のリモート CoS ホストで、通常のコネクタ許可をその都度確認せずに長時間のジョブを実行します。",
+  "Unattended VPS mode": "無人 VPS モード",
+  "Let the companion approve only ordinary Allow/Allow once prompts for this computer's named Core connector. Safety-review prompts are never approved automatically.": "Companion が、このコンピューターの名前付き Core コネクタに対する通常の Allow / Allow once プロンプトだけを承認できるようにします。安全性レビューのプロンプトは自動承認されません。",
+  "Turning this on also enables automatic connection, plugin refresh, background chats and unfinished-answer recovery, and allows browser recovery to open required tabs. If this computer has no connector name yet, it is named “VPS”. These are a one-time preset; Goal, Loop and worker settings stay independent.": "有効にすると、自動接続、プラグインの自動更新、バックグラウンド チャット、未完了回答の復旧も有効になり、ブラウザー復旧が必要なタブを開けるようになります。このコンピューターにまだコネクタ名がない場合は「VPS」と名付けます。これは一度だけ適用されるプリセットで、Goal、Loop、worker の設定は独立したままです。"
 }

@@ -552,6 +552,32 @@ describe('who is allowed to talk to it', () => {
     expect(status.body).toMatchObject({ language: 'en', browserPreferences: { overwrite: false, durations: true } });
   });
 
+  it('publishes automatic connector approval only for unattended mode with a named Core connector', async () => {
+    await pair();
+    const previous = getConfig();
+    try {
+      await saveConfig({ ...previous, connectorSuffix: 'VPS', ui: { ...previous.ui, unattendedVpsMode: true } });
+      expect((await request('GET', '/status')).body.connectorApprovalPolicy).toEqual({
+        enabled: true,
+        connectorName: 'Chat On Steroids Core (VPS)'
+      });
+      expect((await request('GET', '/companion/policy')).body).toEqual({
+        connectorNames: {
+          core: 'Chat On Steroids Core (VPS)',
+          desktop: 'Chat On Steroids Desktop (VPS)',
+          plugins: 'Chat On Steroids Plugins (VPS)'
+        },
+        connectorApprovalPolicy: { enabled: true, connectorName: 'Chat On Steroids Core (VPS)' }
+      });
+      await saveConfig({ ...getConfig(), connectorSuffix: '', ui: { ...getConfig().ui, unattendedVpsMode: true } });
+      expect((await request('GET', '/status')).body.connectorApprovalPolicy).toEqual({ enabled: false });
+      await saveConfig({ ...getConfig(), connectorSuffix: 'VPS', ui: { ...getConfig().ui, unattendedVpsMode: false } });
+      expect((await request('GET', '/status')).body.connectorApprovalPolicy).toEqual({ enabled: false });
+    } finally {
+      await saveConfig(previous);
+    }
+  });
+
   it('accepts only an exact plugin id or an exact missing report on /core-plugin', async () => {
     await pair();
     expect((await request('POST', '/core-plugin', { body: { appId: 'asdk_app_6aa5b6651c3c81919f03cb5dc38bf019' } })).status).toBe(200);

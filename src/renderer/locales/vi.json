@@ -2003,5 +2003,10 @@
   "Know when ChatGPT is waiting": "Biết khi ChatGPT đang chờ",
   "When ChatGPT asks you to allow a tool, the chat tells you instead of standing still.": "Khi ChatGPT yêu cầu bạn cho phép một công cụ, cuộc trò chuyện sẽ báo cho bạn thay vì đứng yên.",
   "One connection control": "Một nút điều khiển kết nối",
-  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Một viên nang nhỏ ở thanh bên hiển thị kết nối và báo cho bạn nếu bị mất."
+  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Một viên nang nhỏ ở thanh bên hiển thị kết nối và báo cho bạn nếu bị mất.",
+  "Unattended VPS": "VPS không giám sát",
+  "Run long jobs on a dedicated remote CoS host without babysitting ordinary connector prompts.": "Chạy các tác vụ dài trên máy chủ CoS từ xa chuyên dụng mà không phải liên tục xử lý các lời nhắc cấp quyền thông thường của trình kết nối.",
+  "Unattended VPS mode": "Chế độ VPS không giám sát",
+  "Let the companion approve only ordinary Allow/Allow once prompts for this computer's named Core connector. Safety-review prompts are never approved automatically.": "Cho phép Companion chỉ phê duyệt các lời nhắc Allow/Allow once thông thường cho trình kết nối Core đã đặt tên của máy tính này. Các lời nhắc rà soát an toàn không bao giờ được tự động phê duyệt.",
+  "Turning this on also enables automatic connection, plugin refresh, background chats and unfinished-answer recovery, and allows browser recovery to open required tabs. If this computer has no connector name yet, it is named “VPS”. These are a one-time preset; Goal, Loop and worker settings stay independent.": "Bật chế độ này cũng bật kết nối tự động, làm mới plugin, chat nền và khôi phục câu trả lời chưa hoàn tất, đồng thời cho phép khôi phục trình duyệt mở các tab cần thiết. Nếu máy tính này chưa có tên trình kết nối, nó sẽ được đặt tên “VPS”. Đây là cấu hình đặt trước chỉ áp dụng một lần; các cài đặt Goal, Loop và worker vẫn độc lập."
 }

@@ -931,6 +931,17 @@
                 <div class="settings-surface pane">
                   <label class="setting"><span class="setting-text"><b>Auto-select Skills</b><em>Match one imported Skill by its exact name in the message, not by topic. Explicit Skill choices always win.</em></span><input id="autoSelectSkills" type="checkbox" /></label>
                 </div>
+                <header class="settings-section-head automation-section-head"><div><h2 class="settings-section-title">Unattended VPS</h2><p>Run long jobs on a dedicated remote CoS host without babysitting ordinary connector prompts.</p></div></header>
+                <div class="settings-surface pane">
+                  <label class="setting">
+                    <span class="setting-text">
+                      <b>Unattended VPS mode</b>
+                      <em>Let the companion approve only ordinary Allow/Allow once prompts for this computer's named Core connector. Safety-review prompts are never approved automatically.</em>
+                    </span>
+                    <input id="unattendedVpsMode" type="checkbox" />
+                  </label>
+                  <p class="muted">Turning this on also enables automatic connection, plugin refresh, background chats and unfinished-answer recovery, and allows browser recovery to open required tabs. If this computer has no connector name yet, it is named “VPS”. These are a one-time preset; Goal, Loop and worker settings stay independent.</p>
+                </div>
                 <header class="settings-section-head automation-section-head"><div><h2 class="settings-section-title">Workers & recovery</h2><p>Set worker limits and which chats can resume after interruptions.</p></div></header>
                 <div class="settings-surface pane">
                   <div class="setting">

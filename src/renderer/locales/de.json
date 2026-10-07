@@ -2003,5 +2003,10 @@
   "Know when ChatGPT is waiting": "Sehen, wann ChatGPT wartet",
   "When ChatGPT asks you to allow a tool, the chat tells you instead of standing still.": "Wenn ChatGPT dich bittet, ein Tool zuzulassen, sagt es dir der Chat, statt stillzustehen.",
   "One connection control": "Eine Verbindungsanzeige",
-  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Eine Kapsel in der Seitenleiste zeigt die Verbindung und meldet Abbrüche."
+  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Eine Kapsel in der Seitenleiste zeigt die Verbindung und meldet Abbrüche.",
+  "Unattended VPS": "Unbeaufsichtigter VPS",
+  "Run long jobs on a dedicated remote CoS host without babysitting ordinary connector prompts.": "Lange Aufgaben auf einem dedizierten entfernten CoS-Host ausführen, ohne gewöhnliche Connector-Freigaben ständig bestätigen zu müssen.",
+  "Unattended VPS mode": "Modus „Unbeaufsichtigter VPS“",
+  "Let the companion approve only ordinary Allow/Allow once prompts for this computer's named Core connector. Safety-review prompts are never approved automatically.": "Die Companion-Erweiterung darf nur gewöhnliche „Zulassen“/„Einmal zulassen“-Abfragen für den benannten Core-Connector dieses Computers bestätigen. Sicherheitsprüfungen werden niemals automatisch bestätigt.",
+  "Turning this on also enables automatic connection, plugin refresh, background chats and unfinished-answer recovery, and allows browser recovery to open required tabs. If this computer has no connector name yet, it is named “VPS”. These are a one-time preset; Goal, Loop and worker settings stay independent.": "Beim Einschalten werden außerdem automatische Verbindung, Plugin-Aktualisierung, Hintergrund-Chats und die Wiederherstellung unvollständiger Antworten aktiviert; die Browser-Wiederherstellung darf erforderliche Tabs öffnen. Wenn dieser Computer noch keinen Connector-Namen hat, wird er „VPS“ genannt. Dies ist eine einmalige Voreinstellung; Goal, Loop und Worker-Einstellungen bleiben unabhängig."
 }

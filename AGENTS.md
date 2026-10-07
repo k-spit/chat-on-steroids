@@ -208,6 +208,7 @@ define the tool/config/wire contract. README and worklogs are secondary and can 
 | Shell/UI | Dark theme, minimize to tray, no automatic connector connection/login startup by default. | Optional browser/finish/plan choices are resolved by current config and their consumer, not invented from absent fields. |
 | Command policy | Off, in Allowlist mode, with no rules. | Missing legacy settings stay Off; a missing mode defaults to Allowlist. Rules and mode persist while Off. An enabled empty Allowlist rejects every launch; an enabled empty Denylist permits simple supported commands. |
 | Plugin auto-refresh | Off. | Local status/discovery never claims ChatGPT refreshed its connector snapshot. |
+| Unattended VPS mode | Off. | Opt-in under Settings › Agents & automation. Enabling it applies a one-time browser-automation preset and names an unnamed install `VPS`; Goal/Loop and worker policy remain independent. Automatic connector approval is published only while the mode is on **and** this install has a non-empty connector suffix. |
 | Browser bridge port | Auto. | `ui.browserBridgePort` accepts Auto or 8765–8769. Effective `CLF_BRIDGE_PORTS` overrides it and disables the Settings control. |
 | Background chats | On. | Omitted legacy settings use On; explicit saved On/Off remains exact. Cold Windows startup requests a minimized browser window. |
 
@@ -1122,6 +1123,11 @@ plain names. ChatGPT records a connector's calls under the exact name typed (cal
 - The `/status` reply carries `connectorNames`; the extension keeps the last valid set in local
   storage and hands it to pages with `status`. Pages recognize exactly these names (plus the legacy
   `TobisComputer`), never a prefix, so one computer never records or attributes the other's calls.
+- Unattended VPS mode reuses that exact install identity for ordinary connector approvals. Main
+  owns the setting and publishes a live `connectorApprovalPolicy`; the Companion never persists an
+  approval grant. A missing suffix, app/bridge loss, Disconnect, a foreign connector name, an
+  ambiguous permission-card shape or safety-review text all fail closed. Settings changes wake the
+  worker, which pushes revocation to already-open pages instead of waiting for their status poll.
 - `usage.js` reports every Core-like app from the page's system hints; the content script mentions
   the one with this install's exact name, and none when it is missing or ambiguous.
 - Plugin refresh treats any "Chat On Steroids Plugins (…)" as the Plugins kind for its action limits.
@@ -1880,15 +1886,23 @@ browser; the user must use the profile containing the companion. There is no aut
 
 | Component | Responsibility |
 | --- | --- |
-| `chatgpt-dom.js` | All provider selectors and DOM-shape assumptions, composer/upload/model/turn primitives. |
+| `chatgpt-dom.js` | All provider selectors and DOM-shape assumptions, composer/upload/model/turn primitives, and strict recognition of ordinary connector-permission cards. |
 | `fiber.js` | Bounded MAIN-world React evidence: messages, request ids, generation/model state and installed connector declarations. |
 | `usage.js` | Bounded account-usage and exact live stream request-origin observation. |
-| `content.js` | Isolated-world recording, exact turn/navigation ownership, input/command execution, native-page companion UI. |
-| `background.js` | MV3 journal and HTTP transport, tab/document registry, command elections and durable ACK custody. |
+| `content.js` | Isolated-world recording, exact turn/navigation ownership, input/command execution, native-page companion UI, and the final click/no-click decision for a live app-owned connector-approval policy. |
+| `background.js` | MV3 journal and HTTP transport, tab/document registry, command elections, durable ACK custody, and fail-closed delivery/revocation of the live connector-approval policy. |
 | `popup.*`, `overlay.css` | Pair/reconnect status and extension-owned presentation; no local tool authority. |
 
 The popup has no extension-reload action. The temporary debug button, handler and opener
 script are retired; manual extension reload uses the browser's normal extension management.
+
+Unattended connector approval is deliberately narrower than a generic "click Allow" feature.
+The app must publish the exact suffixed Core name; `chatgpt-dom.js` must find exactly one visible
+ordinary card with one recognized Allow/Allow once action plus Deny; keyboard-hint suffixes such
+as `Esc`, `Enter` and `↵` are normalized without accepting arbitrary extra words. Cards containing
+`Suspicious Instruction`, safety warning/review, high-risk, classifier, untrusted-content or
+sensitive-information markers are never clicked. The browser grant is live-only and disappears on
+policy loss or disconnect. Provider safety decisions are not an automation target.
 
 Content↔MAIN messages need the expected source, type, nonce and navigation epoch. MAIN evidence
 is untrusted data, not instructions or filesystem permission. Prefer bounded observations of

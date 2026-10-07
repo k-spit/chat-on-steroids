@@ -2003,5 +2003,10 @@
   "Know when ChatGPT is waiting": "Saiba quando o ChatGPT está à espera",
   "When ChatGPT asks you to allow a tool, the chat tells you instead of standing still.": "Quando o ChatGPT lhe pede para permitir uma ferramenta, o chat avisa-o em vez de ficar parado.",
   "One connection control": "Um único controlo de ligação",
-  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Uma pequena cápsula na barra lateral mostra a ligação e avisa-o se esta cair."
+  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Uma pequena cápsula na barra lateral mostra a ligação e avisa-o se esta cair.",
+  "Unattended VPS": "VPS não supervisionado",
+  "Run long jobs on a dedicated remote CoS host without babysitting ordinary connector prompts.": "Execute tarefas longas num anfitrião CoS remoto dedicado sem ter de acompanhar os pedidos normais de permissão do conector.",
+  "Unattended VPS mode": "Modo VPS não supervisionado",
+  "Let the companion approve only ordinary Allow/Allow once prompts for this computer's named Core connector. Safety-review prompts are never approved automatically.": "Permita que o Companion aprove apenas pedidos normais de Allow/Allow once para o conector Core com nome deste computador. Os pedidos de revisão de segurança nunca são aprovados automaticamente.",
+  "Turning this on also enables automatic connection, plugin refresh, background chats and unfinished-answer recovery, and allows browser recovery to open required tabs. If this computer has no connector name yet, it is named “VPS”. These are a one-time preset; Goal, Loop and worker settings stay independent.": "Ao ativar, também são ativados a ligação automática, a atualização de plugins, os chats em segundo plano e a recuperação de respostas incompletas, e a recuperação do navegador pode abrir os separadores necessários. Se este computador ainda não tiver um nome de conector, receberá o nome “VPS”. Esta é uma predefinição aplicada uma única vez; as definições de Goal, Loop e workers permanecem independentes."
 }

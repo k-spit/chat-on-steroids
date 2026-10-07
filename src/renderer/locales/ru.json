@@ -2003,5 +2003,10 @@
   "Know when ChatGPT is waiting": "Знайте, когда ChatGPT ждёт",
   "When ChatGPT asks you to allow a tool, the chat tells you instead of standing still.": "Когда ChatGPT просит разрешить инструмент, чат сообщает об этом, а не просто стоит.",
   "One connection control": "Один элемент подключения",
-  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Небольшая капсула в боковой панели показывает подключение и сообщает, если оно прервётся."
+  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Небольшая капсула в боковой панели показывает подключение и сообщает, если оно прервётся.",
+  "Unattended VPS": "VPS без присмотра",
+  "Run long jobs on a dedicated remote CoS host without babysitting ordinary connector prompts.": "Запускайте длительные задачи на выделенном удалённом хосте CoS без необходимости подтверждать обычные запросы разрешений коннектора.",
+  "Unattended VPS mode": "Режим VPS без присмотра",
+  "Let the companion approve only ordinary Allow/Allow once prompts for this computer's named Core connector. Safety-review prompts are never approved automatically.": "Разрешить Companion автоматически подтверждать только обычные запросы Allow/Allow once для именованного коннектора Core этого компьютера. Запросы проверки безопасности никогда не подтверждаются автоматически.",
+  "Turning this on also enables automatic connection, plugin refresh, background chats and unfinished-answer recovery, and allows browser recovery to open required tabs. If this computer has no connector name yet, it is named “VPS”. These are a one-time preset; Goal, Loop and worker settings stay independent.": "При включении также активируются автоматическое подключение, обновление плагинов, фоновые чаты и восстановление незавершённых ответов, а восстановление браузера сможет открывать необходимые вкладки. Если у этого компьютера ещё нет имени коннектора, ему будет присвоено имя «VPS». Это одноразовый набор настроек; параметры Goal, Loop и workers остаются независимыми."
 }

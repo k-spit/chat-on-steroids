@@ -2003,5 +2003,10 @@
   "Know when ChatGPT is waiting": "ChatGPT beklediğinde haberin olsun",
   "When ChatGPT asks you to allow a tool, the chat tells you instead of standing still.": "ChatGPT bir araca izin vermeni istediğinde sohbet olduğu yerde durmak yerine sana söyler.",
   "One connection control": "Tek bağlantı kontrolü",
-  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Kenar çubuğundaki küçük bir kapsül bağlantıyı gösterir ve koparsa haber verir."
+  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Kenar çubuğundaki küçük bir kapsül bağlantıyı gösterir ve koparsa haber verir.",
+  "Unattended VPS": "Gözetimsiz VPS",
+  "Run long jobs on a dedicated remote CoS host without babysitting ordinary connector prompts.": "Normal bağlayıcı izin istemlerini sürekli takip etmeden ayrılmış bir uzak CoS ana bilgisayarında uzun işleri çalıştırın.",
+  "Unattended VPS mode": "Gözetimsiz VPS modu",
+  "Let the companion approve only ordinary Allow/Allow once prompts for this computer's named Core connector. Safety-review prompts are never approved automatically.": "Companion yalnızca bu bilgisayarın adlandırılmış Core bağlayıcısı için normal Allow/Allow once istemlerini onaylasın. Güvenlik incelemesi istemleri hiçbir zaman otomatik olarak onaylanmaz.",
+  "Turning this on also enables automatic connection, plugin refresh, background chats and unfinished-answer recovery, and allows browser recovery to open required tabs. If this computer has no connector name yet, it is named “VPS”. These are a one-time preset; Goal, Loop and worker settings stay independent.": "Bunu açmak otomatik bağlantıyı, eklenti yenilemeyi, arka plan sohbetlerini ve tamamlanmamış yanıt kurtarmayı da etkinleştirir ve tarayıcı kurtarmanın gerekli sekmeleri açmasına izin verir. Bu bilgisayarın henüz bir bağlayıcı adı yoksa adı “VPS” olur. Bu, bir kez uygulanan bir ön ayardır; Goal, Loop ve worker ayarları bağımsız kalır."
 }

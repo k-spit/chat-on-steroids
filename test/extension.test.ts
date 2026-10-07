@@ -150,6 +150,10 @@ class FakeNode {
   className = '';
   tagName = 'DIV';
   children: FakeNode[] = [];
+  parentElement: FakeNode | null = null;
+  hidden = false;
+  disabled = false;
+  clicks = 0;
   private attrs = new Map<string, string>();
   private all = new Map<string, FakeNode[]>();
   private closestMatches = new Set<string>();
@@ -204,6 +208,14 @@ class FakeNode {
   contains(other: FakeNode): boolean {
     return other === this;
   }
+
+  getClientRects(): Array<Record<string, never>> {
+    return [{}];
+  }
+
+  click(): void {
+    this.clicks += 1;
+  }
 }
 
 /** A tool block as the live page renders it: a short header line and nothing else. */
@@ -222,11 +234,15 @@ interface DomApi {
   hideProgress(turn: unknown, hidden: boolean): void;
   toolBlocks(turn: unknown): FakeNode[];
   errors(): string[];
+  connectorApprovalActionLabel(value: unknown): string;
+  connectorApprovalCandidate(requiredConnectorName: string): { button: FakeNode; label: string; cardText: string; safetyMarker: string | null } | null;
 }
 
-function loadDom(sections: FakeNode[], pathname = '/c/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'): DomApi {
+function loadDom(sections: FakeNode[], pathname = '/c/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', buttons: FakeNode[] = []): DomApi {
   const document = {
-    querySelectorAll: (selector: string) => (selector.split(/,\s*/).includes(TURN_SELECTOR) ? sections : []),
+    querySelectorAll: (selector: string) => selector === 'button'
+      ? buttons
+      : (selector.split(/,\s*/).includes(TURN_SELECTOR) ? sections : []),
     querySelector: () => null
   };
   const context = vm.createContext({ document, location: { pathname } });
@@ -240,6 +256,34 @@ function turn(role: 'user' | 'assistant', id: string): FakeNode {
 
 describe('ChatGPT DOM adapter', () => {
   const CONVERSATION = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+
+  it('normalizes only known connector approval keyboard hints', () => {
+    const dom = loadDom([]);
+    for (const [raw, expected] of [
+      ['Deny', 'Deny'], ['Deny Esc', 'Deny'], ['Allow once', 'Allow once'],
+      ['Allow once Enter', 'Allow once'], ['Allow once ↵', 'Allow once'],
+      ['Allow once ↵⌄', 'Allow once'], ['Einmal zulassen ↵', 'Einmal zulassen'],
+      ['Ablehnen Esc', 'Ablehnen'], ['Allow permanently', ''], ['Deny everything', '']
+    ]) expect(dom.connectorApprovalActionLabel(raw), raw).toBe(expected);
+  });
+
+  it('finds one exact ordinary Core approval card and exposes safety markers without clicking', () => {
+    const allow = new FakeNode({}, 'Allow once ↵');
+    const deny = new FakeNode({}, 'Deny Esc');
+    const card = new FakeNode({}, 'Chat On Steroids Core (VPS) Allow ChatGPT to use Chat On Steroids Core (VPS)? Deny Esc Allow once ↵')
+      .with('button', [deny, allow]);
+    allow.parentElement = card;
+    deny.parentElement = card;
+    const dom = loadDom([], `/c/${CONVERSATION}`, [deny, allow]);
+    expect(dom.connectorApprovalCandidate('Chat On Steroids Core (VPS)')).toMatchObject({
+      button: allow,
+      label: 'Allow once',
+      safetyMarker: null
+    });
+    card.textContent = card.innerText = 'Chat On Steroids Core (VPS) Suspicious Instruction Deny Esc Allow once ↵';
+    expect(dom.connectorApprovalCandidate('Chat On Steroids Core (VPS)')?.safetyMarker).toBe('suspicious instruction');
+    expect(dom.connectorApprovalCandidate('Chat On Steroids Core (Other)')).toBeNull();
+  });
 
   /**
    * Project conversations are routed under the project, and everything downstream — app
@@ -5484,5 +5528,38 @@ describe('this install\'s connector names', () => {
     names = { core: 'Chat On Steroids Core', desktop: 'Chat On Steroids Desktop', plugins: 'Chat On Steroids Plugins' };
     await worker.fireAlarm();
     expect((await worker.send({ type: 'status' }) as any).connectorNames).toEqual(names);
+  });
+
+  it('reads unattended approval live from the app, requires the exact named Core, and never persists the grant', async () => {
+    const local = new FakeStorageArea(paired);
+    const session = new FakeStorageArea();
+    let policy: unknown = { enabled: true, connectorName: windows.core };
+    const fetch = vi.fn(async (input: string) => {
+      const url = new URL(input);
+      if (url.pathname === '/hello') return response(200, { app: 'chat-on-steroids', paired: true });
+      if (url.pathname === '/companion/policy') return response(200, { connectorNames: windows, connectorApprovalPolicy: policy });
+      return response(200, { connectorNames: windows, connectorApprovalPolicy: policy });
+    });
+    const worker = loadWorker({ local, session, fetch });
+    expect(await worker.send({ type: 'status' })).toMatchObject({
+      connectorNames: windows,
+      connectorApprovalPolicy: { enabled: true, connectorName: windows.core }
+    });
+    expect(local.data).not.toHaveProperty('connectorApprovalPolicy');
+
+    // A restarted worker does not inherit approval from browser storage. With no live policy
+    // response it remains disabled even though connector names themselves are intentionally kept.
+    const offline = vi.fn(async (input: string) => new URL(input).pathname === '/hello'
+      ? response(200, { app: 'chat-on-steroids', paired: true })
+      : response(503, {}));
+    const restarted = loadWorker({ local, session: new FakeStorageArea(), fetch: offline });
+    expect(await restarted.send({ type: 'status' })).toMatchObject({
+      connectorNames: windows,
+      connectorApprovalPolicy: { enabled: false }
+    });
+
+    policy = { enabled: true, connectorName: 'Chat On Steroids Core (Other)' };
+    const foreign = loadWorker({ local: new FakeStorageArea(paired), session: new FakeStorageArea(), fetch });
+    expect(await foreign.send({ type: 'status' })).toMatchObject({ connectorApprovalPolicy: { enabled: false } });
   });
 });

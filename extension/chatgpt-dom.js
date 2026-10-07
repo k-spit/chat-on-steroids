@@ -54,6 +54,15 @@ var CLF_DOM = (() => {
     'button[data-testid="composer-speech-button"], button[data-testid="composer-dictate-button"], ' +
     'button[aria-label^="Dictate" i], button[aria-label^="Voice" i], ' +
     'button[aria-label="Start dictation" i], button[aria-label="Start Voice" i]';
+  const CONNECTOR_APPROVAL_ACTIONS = ['Allow once', 'Einmal zulassen', 'Allow', 'Zulassen', 'Deny', 'Ablehnen'];
+  const CONNECTOR_APPROVAL_ALLOW = new Set(['Allow once', 'Einmal zulassen', 'Allow', 'Zulassen']);
+  const CONNECTOR_APPROVAL_DENY = new Set(['Deny', 'Ablehnen']);
+  const CONNECTOR_APPROVAL_KEY_WORDS = new Set(['esc', 'escape', 'enter', 'return']);
+  const CONNECTOR_APPROVAL_KEY_SYMBOLS = /^[↵⏎⌄⌃⌥⌘⌫⇧⌤▾▼⌁⌅⌆⌵⏷]+$/u;
+  const CONNECTOR_APPROVAL_SAFETY_MARKERS = [
+    'suspicious instruction', 'safety warning', 'safety review', 'high risk', 'high-risk',
+    'classifier-relevant', 'untrusted content', 'sensitive information'
+  ];
   const safe = (fn, fallback) => {
     try {
       const value = fn();
@@ -65,6 +74,69 @@ var CLF_DOM = (() => {
 
   const text = (node, cap = 256_000) =>
     node ? (node.textContent || '').replace(/ /g, ' ').trim().slice(0, cap) : '';
+
+  const normalizedText = value => String(value || '').replace(/\s+/g, ' ').trim();
+
+  /** Native permission buttons sometimes append keyboard hints ("Deny Esc", "Allow once ↵"). */
+  function connectorApprovalActionLabel(value) {
+    const source = normalizedText(value), lower = source.toLowerCase();
+    for (const base of CONNECTOR_APPROVAL_ACTIONS) {
+      const baseLower = base.toLowerCase();
+      if (lower === baseLower) return base;
+      if (!lower.startsWith(`${baseLower} `)) continue;
+      const suffix = normalizedText(source.slice(base.length));
+      const tokens = suffix.split(/\s+/).filter(Boolean);
+      if (tokens.length && tokens.every(token =>
+        CONNECTOR_APPROVAL_KEY_WORDS.has(token.toLowerCase()) || CONNECTOR_APPROVAL_KEY_SYMBOLS.test(token))) return base;
+    }
+    return '';
+  }
+
+  /**
+   * Find exactly one ordinary connector permission card for this install's Core connector.
+   * Ambiguous card shapes and safety-review text are returned only as a blocked candidate; the
+   * caller decides whether to click. Provider selectors stay here rather than in content.js.
+   */
+  function connectorApprovalCandidate(requiredConnectorName) {
+    return safe(() => {
+      const required = normalizedText(requiredConnectorName);
+      if (!required || required.length > 80 || !conversationId()) return null;
+      const shown = node => {
+        if (!node || node.hidden || node.disabled || node.closest?.(OWN_SURFACES)) return false;
+        if (typeof node.getClientRects === 'function' && node.getClientRects().length === 0) return false;
+        if (typeof getComputedStyle === 'function') {
+          const style = getComputedStyle(node);
+          if (style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse' || Number(style.opacity) === 0) return false;
+        }
+        return true;
+      };
+      const label = button => connectorApprovalActionLabel(button?.innerText || button?.textContent);
+      const cards = [];
+      const seen = new Set();
+      for (const button of [...document.querySelectorAll('button')].filter(node => shown(node) && CONNECTOR_APPROVAL_ALLOW.has(label(node)))) {
+        let card = button.parentElement;
+        for (let depth = 0; card && depth < 12; depth += 1, card = card.parentElement) {
+          if (!shown(card)) continue;
+          const cardText = normalizedText(card.innerText || card.textContent);
+          if (!cardText || cardText.length > 6000 || !cardText.toLowerCase().includes(required.toLowerCase())) continue;
+          const buttons = [...card.querySelectorAll('button')].filter(shown);
+          if (!buttons.some(candidate => CONNECTOR_APPROVAL_DENY.has(label(candidate)))) continue;
+          const allows = buttons.filter(candidate => CONNECTOR_APPROVAL_ALLOW.has(label(candidate)));
+          if (allows.length !== 1 || seen.has(card)) break;
+          seen.add(card);
+          const lower = cardText.toLowerCase();
+          cards.push({
+            button: allows[0],
+            label: label(allows[0]),
+            cardText,
+            safetyMarker: CONNECTOR_APPROVAL_SAFETY_MARKERS.find(marker => lower.includes(marker)) || null
+          });
+          break;
+        }
+      }
+      return cards.length === 1 ? cards[0] : null;
+    }, null);
+  }
 
   // A ChatGPT app mention renders as an inline chip (#861). It is how a message attached the app,
   // not what its author wrote, so readers comparing authored text never count it.
@@ -3247,6 +3319,8 @@ var CLF_DOM = (() => {
     hasComposerAttachments,
     composerAttachmentNames,
     pluginRefreshView,
+    connectorApprovalActionLabel,
+    connectorApprovalCandidate,
     setConnectorNames,
     connectorNames,
     pluginInstalledButtons,

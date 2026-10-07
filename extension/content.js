@@ -111,6 +111,10 @@
   const RENDER_STREAM_KEY = 'renderStreamEnabled';
   /** Timestamps are useful for debugging, but too noisy for the normal transcript. */
   const SHOW_TIMES_KEY = 'showStreamTimes';
+  const CONNECTOR_APPROVAL_CLICK_INTERVAL_MS = 5000;
+  let connectorApprovalPolicy = { enabled: false };
+  let connectorApprovalLastClickAt = 0;
+  let connectorApprovalLastSafetySignature = '';
   /**
    * Production now starts with transcript overwrite enabled. Tests deliberately start off
    * and opt in case-by-case so renderer regressions do not contaminate unrelated capture
@@ -10888,6 +10892,10 @@
   async function checkStatus() {
     const reply = await ask({ type: 'status' });
     if (reply?.connectorNames && CLF_DOM.setConnectorNames(reply.connectorNames)) { ownNamesKnown = true; reportCorePlugin(); }
+    connectorApprovalPolicy = reply?.connectorApprovalPolicy?.enabled === true && typeof reply.connectorApprovalPolicy.connectorName === 'string'
+      ? { enabled: true, connectorName: reply.connectorApprovalPolicy.connectorName }
+      : { enabled: false };
+    inspectConnectorApproval();
     if (reply) {
       status = {
         connected: reply.connected === true,
@@ -10897,6 +10905,26 @@
     }
     renderStreams();
     renderControl();
+  }
+
+  /**
+   * Unattended mode approves only the one ordinary permission-card shape the DOM adapter proves.
+   * Safety-review text, ambiguity, a foreign connector name or a non-conversation page all stop
+   * here. The app owns whether the mode is enabled; the browser cannot arm itself persistently.
+   */
+  function inspectConnectorApproval() {
+    if (!connectorApprovalPolicy.enabled || !connectorApprovalPolicy.connectorName) return;
+    const candidate = CLF_DOM.connectorApprovalCandidate(connectorApprovalPolicy.connectorName);
+    if (!candidate) return;
+    if (candidate.safetyMarker) {
+      const signature = `${candidate.safetyMarker}\n${candidate.cardText.slice(0, 400)}`;
+      if (signature !== connectorApprovalLastSafetySignature) connectorApprovalLastSafetySignature = signature;
+      return;
+    }
+    const now = Date.now();
+    if (now - connectorApprovalLastClickAt < CONNECTOR_APPROVAL_CLICK_INTERVAL_MS) return;
+    connectorApprovalLastClickAt = now;
+    candidate.button.click();
   }
 
   /**
@@ -13010,6 +13038,14 @@
         sendResponse({ ready: !modelCatalogBusy && (!reason || (reason === 'composer_missing' && catalogHelper())), reason });
         return false;
       }
+      if (message.type === 'clf-connector-approval-policy') {
+        connectorApprovalPolicy = message.policy?.enabled === true && typeof message.policy.connectorName === 'string'
+          ? { enabled: true, connectorName: message.policy.connectorName }
+          : { enabled: false };
+        if (connectorApprovalPolicy.enabled) inspectConnectorApproval();
+        sendResponse({ ok: true });
+        return false;
+      }
       if (message.type === 'clf-input-reuse-state') {
         sendResponse({ safe: inputReuseSafe(), navigationEpoch: epoch });
         return false;
@@ -13223,6 +13259,7 @@
     paint();
     renderStreams();
     foldBootstrap();
+    inspectConnectorApproval();
   });
   scheduleActivityPull(ACTIVITY_MS);
   if (typeof document !== 'undefined' && document.addEventListener) {
@@ -13350,6 +13387,14 @@
       setDesktopProjectInputForTest: (claim) => { desktopProjectInput = claim; },
       desktopProjectInputForTest: () => desktopProjectInput,
       desktopInputBusyForTest: () => desktopInputBusy,
+      inspectConnectorApproval,
+      setConnectorApprovalPolicyForTest: (policy) => {
+        connectorApprovalPolicy = policy?.enabled === true && typeof policy.connectorName === 'string'
+          ? { enabled: true, connectorName: policy.connectorName }
+          : { enabled: false };
+        connectorApprovalLastClickAt = 0;
+        connectorApprovalLastSafetySignature = '';
+      },
       setShowTimes: (on) => {
         SHOW_TIMES = on === true;
       }

@@ -683,6 +683,7 @@ function save(over: { readOnly?: boolean; theme?: 'light' | 'dark'; appearance?:
       autoContinue: $<HTMLInputElement>('autoContinue').checked,
       browserOnly: $<HTMLInputElement>('browserOnly').checked,
       autoRefreshPlugins: $<HTMLInputElement>('autoRefreshPlugins').checked,
+      unattendedVpsMode: $<HTMLInputElement>('unattendedVpsMode').checked,
       autoSelectSkills: $<HTMLInputElement>('autoSelectSkills').checked,
       autoConnect: $<HTMLInputElement>('autoConnect').checked,
       startAtLogin: $<HTMLInputElement>('startAtLogin').checked,
@@ -1488,6 +1489,7 @@ function apply(next: AppState): void {
   applyChecked($<HTMLInputElement>('autoContinue'), config.ui.autoContinue !== false, previousState?.config.ui.autoContinue);
   applyChecked($<HTMLInputElement>('browserOnly'), config.ui.browserOnly === true, previousState?.config.ui.browserOnly);
   applyChecked($<HTMLInputElement>('autoRefreshPlugins'), config.ui.autoRefreshPlugins === true, previousState?.config.ui.autoRefreshPlugins);
+  applyChecked($<HTMLInputElement>('unattendedVpsMode'), config.ui.unattendedVpsMode === true, previousState?.config.ui.unattendedVpsMode);
   applyChecked($<HTMLInputElement>('autoSelectSkills'), config.ui.autoSelectSkills === true, previousState?.config.ui.autoSelectSkills);
   $('startAtLoginRow').hidden = next.loginStartupAvailable !== true;
   $<HTMLInputElement>('startAtLogin').disabled = next.loginStartupAvailable !== true;
@@ -2450,6 +2452,21 @@ for (const id of [
   $(id).addEventListener('change', () => void save());
 }
 $('connectorSuffix').addEventListener('input', () => { connectorSuffixValid(); });
+$<HTMLInputElement>('unattendedVpsMode').addEventListener('change', () => {
+  if (!$<HTMLInputElement>('unattendedVpsMode').checked) return;
+  // This is deliberately a one-time preset, not a second owner for the individual settings.
+  // Once enabled, users may tune those settings without the mode silently rewriting them again.
+  const suffix = $<HTMLInputElement>('connectorSuffix');
+  if (!suffix.value.trim()) {
+    suffix.value = 'VPS';
+    connectorSuffixValid();
+  }
+  $<HTMLInputElement>('autoConnect').checked = true;
+  $<HTMLInputElement>('autoContinue').checked = true;
+  $<HTMLInputElement>('backgroundChats').checked = true;
+  $<HTMLInputElement>('autoRefreshPlugins').checked = true;
+  $<HTMLInputElement>('browserOnly').checked = false;
+});
 
 document.addEventListener('click', (event) => {
   const target = event.target as HTMLElement;

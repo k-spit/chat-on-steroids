@@ -215,6 +215,7 @@ const settingsPatch = z.object({
     browserBridgePort: browserBridgePortSchema.optional(),
     browserOnly: z.boolean().optional(),
     autoRefreshPlugins: z.boolean().optional(),
+    unattendedVpsMode: z.boolean().optional(),
     autoSelectSkills: z.boolean().optional(),
     tabsToKeepOpen: z.number().int().min(1).max(50).optional(),
     minimizeToTray: z.boolean(),
@@ -381,6 +382,7 @@ function mergeSettings(current: Config, base: SettingsSnapshot, wanted: Settings
         : pick(current.ui.browserBridgePort ?? 'auto', base.ui.browserBridgePort ?? 'auto', wanted.ui.browserBridgePort),
       browserOnly: pick(current.ui.browserOnly, base.ui.browserOnly, wanted.ui.browserOnly),
       autoRefreshPlugins: pick(current.ui.autoRefreshPlugins, base.ui.autoRefreshPlugins, wanted.ui.autoRefreshPlugins),
+      unattendedVpsMode: pick(current.ui.unattendedVpsMode, base.ui.unattendedVpsMode, wanted.ui.unattendedVpsMode),
       autoSelectSkills: pick(current.ui.autoSelectSkills, base.ui.autoSelectSkills, wanted.ui.autoSelectSkills),
       tabsToKeepOpen: pick(current.ui.tabsToKeepOpen, base.ui.tabsToKeepOpen, wanted.ui.tabsToKeepOpen),
       minimizeToTray: pick(current.ui.minimizeToTray, base.ui.minimizeToTray, wanted.ui.minimizeToTray),
@@ -692,7 +694,9 @@ export function registerIpc(getWindow: () => BrowserWindow | null, quitToInstall
     // tunnel id left the connector unpublished until the user happened to reconnect, with
     // the card still saying "not published" and nothing explaining why.
     await applySettings();
-    if (before.ui.autoRefreshPlugins !== next.ui.autoRefreshPlugins) wakeBrowserWork();
+    if (before.ui.autoRefreshPlugins !== next.ui.autoRefreshPlugins ||
+        before.ui.unattendedVpsMode !== next.ui.unattendedVpsMode ||
+        before.connectorSuffix !== next.connectorSuffix) wakeBrowserWork();
     logInfo('settings updated');
     // The config and runtime side effects above still complete so the app does not stay half-on,
     // but the UI must not be told the pause was safely accepted when its retained authority

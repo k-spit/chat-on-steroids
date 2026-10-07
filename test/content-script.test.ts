@@ -162,6 +162,8 @@ interface Hook {
   setDesktopProjectInputForTest(claim: { id: string; owner: string } | null): void;
   desktopProjectInputForTest(): { id: string; owner: string } | null;
   desktopInputBusyForTest(): boolean;
+  inspectConnectorApproval(): void;
+  setConnectorApprovalPolicyForTest(policy: { enabled: boolean; connectorName?: string }): void;
   setShowTimes(on: boolean): void;
   /** How long Overwrite leaves a user-driven scroll completely presentation-stable. */
   PRESENTATION_SCROLL_IDLE_MS: number;
@@ -445,6 +447,77 @@ let live: Harness | null = null;
 afterEach(() => {
   live?.close();
   live = null;
+});
+
+describe('unattended connector approvals', () => {
+  const approvalCard = (document: Document, text: string, onAllow: () => void): void => {
+    const card = document.createElement('div');
+    const body = document.createElement('span');
+    body.textContent = text;
+    const deny = document.createElement('button');
+    deny.textContent = 'Deny Esc';
+    const allow = document.createElement('button');
+    allow.textContent = 'Allow once ↵';
+    allow.addEventListener('click', onAllow);
+    card.append(body, deny, allow);
+    for (const node of [card, deny, allow]) {
+      node.getClientRects = () => [{ width: 240, height: 36 }] as unknown as DOMRectList;
+    }
+    document.body.append(card);
+  };
+
+  it('clicks the one ordinary permission card for the app-owned named Core policy', async () => {
+    const clicked = vi.fn();
+    live = await harness();
+    approvalCard(
+      live.document,
+      'Chat On Steroids Core (VPS) Allow ChatGPT to use Chat On Steroids Core (VPS)?',
+      clicked
+    );
+    live.hook.setConnectorApprovalPolicyForTest({ enabled: true, connectorName: 'Chat On Steroids Core (VPS)' });
+    live.hook.inspectConnectorApproval();
+    expect(clicked).toHaveBeenCalledTimes(1);
+  });
+
+  it('never clicks a safety-review card or a card for another connector', async () => {
+    const safetyClicked = vi.fn();
+    live = await harness();
+    approvalCard(
+      live.document,
+      'Chat On Steroids Core (VPS) Suspicious Instruction Allow ChatGPT to use Chat On Steroids Core (VPS)?',
+      safetyClicked
+    );
+    live.hook.setConnectorApprovalPolicyForTest({ enabled: true, connectorName: 'Chat On Steroids Core (VPS)' });
+    live.hook.inspectConnectorApproval();
+    expect(safetyClicked).not.toHaveBeenCalled();
+    live.close();
+    live = null;
+
+    const foreignClicked = vi.fn();
+    live = await harness();
+    approvalCard(
+      live.document,
+      'Chat On Steroids Core (Other) Allow ChatGPT to use Chat On Steroids Core (Other)?',
+      foreignClicked
+    );
+    live.hook.setConnectorApprovalPolicyForTest({ enabled: true, connectorName: 'Chat On Steroids Core (VPS)' });
+    live.hook.inspectConnectorApproval();
+    expect(foreignClicked).not.toHaveBeenCalled();
+  });
+
+  it('revokes approval immediately when the Companion worker pushes an off policy', async () => {
+    const clicked = vi.fn();
+    live = await harness();
+    approvalCard(
+      live.document,
+      'Chat On Steroids Core (VPS) Allow ChatGPT to use Chat On Steroids Core (VPS)?',
+      clicked
+    );
+    live.hook.setConnectorApprovalPolicyForTest({ enabled: true, connectorName: 'Chat On Steroids Core (VPS)' });
+    expect(await live.runtimeMessage({ type: 'clf-connector-approval-policy', policy: { enabled: false } })).toEqual({ ok: true });
+    live.hook.inspectConnectorApproval();
+    expect(clicked).not.toHaveBeenCalled();
+  });
 });
 
 describe('one synchronous page snapshot per observer turn', () => {

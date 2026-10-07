@@ -185,6 +185,17 @@ describe('settings migration', () => {
     await saveConfig({ ...defaultConfig(), ui: { ...defaultConfig().ui, autoRefreshPlugins: true } });
     expect((await loadConfig()).ui.autoRefreshPlugins).toBe(true);
   });
+  it('defaults unattended VPS mode off and preserves only an explicit valid opt-in', async () => {
+    expect(defaultConfig().ui.unattendedVpsMode).toBe(false);
+    const legacy = defaultConfig(); delete legacy.ui.unattendedVpsMode;
+    await saveConfig(legacy);
+    expect((await loadConfig()).ui.unattendedVpsMode).toBe(false);
+    await saveConfig({ ...defaultConfig(), ui: { ...defaultConfig().ui, unattendedVpsMode: true } });
+    expect((await loadConfig()).ui.unattendedVpsMode).toBe(true);
+    const malformed = { ...defaultConfig(), ui: { ...defaultConfig().ui, unattendedVpsMode: 'yes' } };
+    await fs.writeFile(path.join(dir, 'config.json'), JSON.stringify(malformed), 'utf8');
+    expect((await loadConfig()).ui.unattendedVpsMode).toBe(false);
+  });
   it('defaults automatic Skill selection off for fresh and legacy settings while preserving explicit opt-in', async () => {
     expect(defaultConfig().ui.autoSelectSkills).toBe(false);
     const legacy = defaultConfig(); delete legacy.ui.autoSelectSkills;

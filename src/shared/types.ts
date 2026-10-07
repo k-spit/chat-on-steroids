@@ -143,6 +143,8 @@ export interface UiPrefs {
   browserBridgePort?: import('./browser-bridge.js').BrowserBridgePort;
   /** Opt-in browser automation for changed connector tool schemas. */
   autoRefreshPlugins?: boolean;
+  /** Dedicated-host automation: the companion may approve only ordinary prompts for this install's named Core connector. */
+  unattendedVpsMode?: boolean;
   /** Opt-in deterministic metadata routing for managed Skills on ordinary user input. */
   autoSelectSkills?: boolean;
   /** Actual app-owned tabs to retain; active work and drafts stay protected. Omitted uses workers + 2. */

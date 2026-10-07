@@ -2003,5 +2003,10 @@
   "Know when ChatGPT is waiting": "Savoir quand ChatGPT attend",
   "When ChatGPT asks you to allow a tool, the chat tells you instead of standing still.": "Quand ChatGPT vous demande d’autoriser un outil, le chat vous le dit au lieu de rester immobile.",
   "One connection control": "Une seule commande de connexion",
-  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Une petite capsule dans la barre latérale affiche la connexion et vous prévient si elle tombe."
+  "A small capsule in the sidebar shows the connection and tells you if it drops.": "Une petite capsule dans la barre latérale affiche la connexion et vous prévient si elle tombe.",
+  "Unattended VPS": "VPS sans surveillance",
+  "Run long jobs on a dedicated remote CoS host without babysitting ordinary connector prompts.": "Exécutez de longues tâches sur un hôte CoS distant dédié sans devoir surveiller les demandes ordinaires d’autorisation du connecteur.",
+  "Unattended VPS mode": "Mode VPS sans surveillance",
+  "Let the companion approve only ordinary Allow/Allow once prompts for this computer's named Core connector. Safety-review prompts are never approved automatically.": "Autorisez Companion à approuver uniquement les demandes ordinaires Allow/Allow once pour le connecteur Core nommé de cet ordinateur. Les demandes de contrôle de sécurité ne sont jamais approuvées automatiquement.",
+  "Turning this on also enables automatic connection, plugin refresh, background chats and unfinished-answer recovery, and allows browser recovery to open required tabs. If this computer has no connector name yet, it is named “VPS”. These are a one-time preset; Goal, Loop and worker settings stay independent.": "L’activation active aussi la connexion automatique, l’actualisation des plugins, les chats en arrière-plan et la reprise des réponses inachevées, et autorise la récupération du navigateur à ouvrir les onglets nécessaires. Si cet ordinateur n’a pas encore de nom de connecteur, il est nommé « VPS ». Il s’agit d’un préréglage appliqué une seule fois ; Goal, Loop et les réglages des workers restent indépendants."
 }

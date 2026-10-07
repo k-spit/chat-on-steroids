@@ -60,6 +60,7 @@ Windows 10/11, **macOS 13 Ventura or newer**, or a current desktop Linux. Chrome
 - **Permissions:** choose your approved folders and review capabilities before connecting. Fresh installs enable Core capabilities and two workers; Windows also enables Desktop permissions. Shell commands run with your normal user privileges.
 - **Languages:** English, German, Spanish, French, Korean, Portuguese (Brazil and Portugal), Russian, Turkish, Vietnamese, Japanese, and Simplified and Traditional Chinese. Choose one in **Appearance → Language**.
 - **After updating:** reload the companion extension and refresh the CoS apps in ChatGPT when prompted.
+- **Dedicated VPS:** Settings → Agents & automation → **Unattended VPS mode** applies a one-time remote-work preset and lets the companion approve only ordinary permission prompts for that computer's named Core connector. Safety-review or suspicious-instruction prompts are never approved automatically.
 
 </details>
 

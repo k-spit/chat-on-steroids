@@ -851,6 +851,22 @@ function rememberBrowserPreferences(preferences: { overwrite: boolean; durations
     .catch(error => logWarn(`bridge: could not keep the extension preferences: ${(error as Error).message}`));
 }
 
+function companionConnectorPolicy(): {
+  connectorNames: ReturnType<typeof connectorNames>;
+  connectorApprovalPolicy: { enabled: false } | { enabled: true; connectorName: string };
+} {
+  const config = getConfig();
+  const names = connectorNames(config.connectorSuffix);
+  return {
+    connectorNames: names,
+    // A suffix is the installation identity. Without one, the plain Core name may belong to
+    // another computer using the same ChatGPT account, so unattended approval fails closed.
+    connectorApprovalPolicy: config.ui.unattendedVpsMode === true && Boolean(config.connectorSuffix?.trim())
+      ? { enabled: true, connectorName: names.core }
+      : { enabled: false }
+  };
+}
+
 function sanitiseCompanionDiagnostics(value: unknown): CompanionDiagnostics | null {
   const root = diagnosticObject(value);
   const status = diagnosticObject(root?.status);
@@ -2339,6 +2355,12 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
     return json(res, 200, { ok: true }, origin);
   }
 
+  // Lightweight live policy for content pages. Keep this separate from /status: reading whether
+  // an ordinary connector prompt may be approved must not claim repairs, inputs, or other work.
+  if (route === '/companion/policy' && req.method === 'GET') {
+    return json(res, 200, companionConnectorPolicy(), origin);
+  }
+
   // The offer carries whether this app is running a tool call right now. That, not "a chat has
   // an agent or an active Goal" (almost always true on a busy install), is what a reload could
   // cut short; the pages report their own in-flight turns to the extension directly.
@@ -2426,8 +2448,8 @@ async function handle(req: http.IncomingMessage, res: http.ServerResponse): Prom
         conversations: live,
         stopTurns: await pendingStopCommands(),
         modelCatalogRequest: pendingChatModelRequest(),
-        // This install's connector names, so the extension recognizes exactly its own traffic.
-        connectorNames: connectorNames(getConfig().connectorSuffix),
+        // This install's connector identity and app-owned automatic-approval policy.
+        ...companionConnectorPolicy(),
         pluginRefreshRequests: getConfig().ui.autoRefreshPlugins === true ? pluginRefreshPublications().map(({ surface, schemaId, connectorName }) => ({ surface, schemaId, connectorName })) : [],
         browserPreferenceRequest: pendingBrowserPreferenceRequest(),
         inputOpeningIds: inputRows.filter(row => !['sent', 'failed', 'cancelled'].includes(row.state)).map(row => row.id),

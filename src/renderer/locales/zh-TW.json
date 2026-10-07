@@ -2003,5 +2003,10 @@
   "Know when ChatGPT is waiting": "知道 ChatGPT 何時在等你",
   "When ChatGPT asks you to allow a tool, the chat tells you instead of standing still.": "當 ChatGPT 請你允許某個工具時，聊天會告訴你，而不是停在那裡。",
   "One connection control": "一個連線控制項",
-  "A small capsule in the sidebar shows the connection and tells you if it drops.": "側邊欄中的小膠囊顯示連線狀態，並在中斷時提醒你。"
+  "A small capsule in the sidebar shows the connection and tells you if it drops.": "側邊欄中的小膠囊顯示連線狀態，並在中斷時提醒你。",
+  "Unattended VPS": "無人值守 VPS",
+  "Run long jobs on a dedicated remote CoS host without babysitting ordinary connector prompts.": "在專用的遠端 CoS 主機上執行長時間工作，無需持續處理一般的連接器授權提示。",
+  "Unattended VPS mode": "無人值守 VPS 模式",
+  "Let the companion approve only ordinary Allow/Allow once prompts for this computer's named Core connector. Safety-review prompts are never approved automatically.": "只允許 Companion 自動核准此電腦已命名 Core 連接器的一般 Allow/Allow once 提示。安全審查提示絕不會自動核准。",
+  "Turning this on also enables automatic connection, plugin refresh, background chats and unfinished-answer recovery, and allows browser recovery to open required tabs. If this computer has no connector name yet, it is named “VPS”. These are a one-time preset; Goal, Loop and worker settings stay independent.": "開啟後也會啟用自動連線、外掛重新整理、背景聊天與未完成回答復原，並允許瀏覽器復原功能開啟所需分頁。如果此電腦尚無連接器名稱，則將它命名為「VPS」。這是一次性預設；Goal、Loop 與 worker 設定仍保持獨立。"
 }

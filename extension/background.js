@@ -263,6 +263,10 @@ const COMMAND_TAB_PROTECTION_MS = 30 * 60_000;
  * and claim the other computer's calls until the app answers again. Null until the app says.
  */
 let connectorNames = null;
+/** Live app-owned policy. Never restored from browser storage: app absence/restart fails closed. */
+let connectorApprovalPolicy = { enabled: false };
+let connectorApprovalPolicyCheckedAt = 0;
+let connectorApprovalPolicyFlight = null;
 
 /** The app's names, or null for anything that is not three plain "Chat On Steroids …" strings. */
 function cleanConnectorNames(value) {
@@ -283,6 +287,47 @@ async function rememberConnectorNames(value) {
   if (!names || JSON.stringify(names) === JSON.stringify(connectorNames)) return;
   connectorNames = names;
   try { await chrome.storage.local.set({ connectorNames: names }); } catch { /* Kept in memory for this worker. */ }
+}
+
+function cleanConnectorApprovalPolicy(value) {
+  if (!value || value.enabled !== true || !connectorNames) return { enabled: false };
+  const connectorName = typeof value.connectorName === 'string' ? value.connectorName : '';
+  return connectorName === connectorNames.core ? { enabled: true, connectorName } : { enabled: false };
+}
+
+function setConnectorApprovalPolicy(next) {
+  const changed = JSON.stringify(next) !== JSON.stringify(connectorApprovalPolicy);
+  connectorApprovalPolicy = next;
+  if (!changed) return;
+  // Revocation is live: pages must not keep a stale approval grant until their 15-second status
+  // poll. This message carries policy only; it grants no tool authority and opens no tab.
+  void chrome.tabs.query({ url: CHATGPT_TAB_URLS }).then(tabs => Promise.all(tabs
+    .filter(tab => Number.isInteger(tab.id))
+    .map(tab => chrome.tabs.sendMessage(tab.id, { type: 'clf-connector-approval-policy', policy: next }).catch(() => undefined))))
+    .catch(() => undefined);
+}
+
+async function refreshConnectorApprovalPolicy() {
+  if (!token || disconnected) {
+    setConnectorApprovalPolicy({ enabled: false });
+    return;
+  }
+  if (Date.now() - connectorApprovalPolicyCheckedAt < 5000) return;
+  if (connectorApprovalPolicyFlight) return connectorApprovalPolicyFlight;
+  const work = (async () => {
+    const reply = await call('/companion/policy');
+    connectorApprovalPolicyCheckedAt = Date.now();
+    if (!reply.ok || !reply.data) {
+      setConnectorApprovalPolicy({ enabled: false });
+      return;
+    }
+    await rememberConnectorNames(reply.data.connectorNames);
+    setConnectorApprovalPolicy(cleanConnectorApprovalPolicy(reply.data.connectorApprovalPolicy));
+  })().finally(() => {
+    if (connectorApprovalPolicyFlight === work) connectorApprovalPolicyFlight = null;
+  });
+  connectorApprovalPolicyFlight = work;
+  return work;
 }
 
 function load() {
@@ -1138,6 +1183,8 @@ async function latchAppDisconnect() {
   void getBrowserController().then(controller => controller?.revoke()).catch(() => undefined);
   token = null;
   disconnected = true;
+  setConnectorApprovalPolicy({ enabled: false });
+  connectorApprovalPolicyCheckedAt = 0;
   await activeTabs?.revoke().catch(() => undefined);
   await persist();
 }
@@ -2775,7 +2822,11 @@ async function maintainOnce() {
     chatGptSignedIn: chatGptSignedInState,
     ...(extensionUpdateHold ? { updateHold: extensionUpdateHold } : {}) }) });
   if (intent !== connectionEpoch || !token || disconnected) return;
-  if (!reply.ok || !reply.data) { await activeTabs?.revoke(); return; }
+  if (!reply.ok || !reply.data) {
+    setConnectorApprovalPolicy({ enabled: false });
+    await activeTabs?.revoke();
+    return;
+  }
   const liveChats = new Set(Array.isArray(reply.data.nonDiscardableConversations) ? reply.data.nonDiscardableConversations : []);
   const liveOpenings = new Set(Array.isArray(reply.data.inputOpeningIds) ? reply.data.inputOpeningIds : []);
   const liveCommands = new Set(Array.isArray(reply.data.commandIds) ? reply.data.commandIds : []);
@@ -2863,6 +2914,7 @@ async function maintainOnce() {
   }
   inspectRequestedModels(reply.data.modelCatalogRequest);
   await rememberConnectorNames(reply.data.connectorNames);
+  setConnectorApprovalPolicy(cleanConnectorApprovalPolicy(reply.data.connectorApprovalPolicy));
   inspectRequestedPluginRefresh(reply.data.pluginRefreshRequests, reply.data.background === true, reply.data.browserOnly === true);
   const repairConversations = new Set(repairs.map(entry => entry.conversationId));
   // Reloading the same document races its final input offer. Repair it now; the
@@ -3531,6 +3583,7 @@ const HANDLERS = {
     // Not after a deliberate disconnect: opening the popup to check is not a request to
     // undo the thing the popup was opened to check.
     if (found && !token && !disconnected) await provision();
+    if (found && token && !disconnected) await refreshConnectorApprovalPolicy().catch(() => undefined);
     if (found && token) {
       void drainCommandAcks()
         .then(() => drain())
@@ -3557,6 +3610,7 @@ const HANDLERS = {
       paired: token !== null,
       disconnected,
       connectorNames,
+      connectorApprovalPolicy,
       pending: journal.length,
       pendingCommandAcks: commandAckOutbox.length,
       compatible: found ? found.compatible !== false : null,
@@ -3593,6 +3647,8 @@ const HANDLERS = {
     // Remembered, not just cleared. Otherwise the next request — two seconds away in any
     // open tab — provisions a new token and the browser is connected again.
     disconnected = true;
+    setConnectorApprovalPolicy({ enabled: false });
+    connectorApprovalPolicyCheckedAt = 0;
     await activeTabs?.revoke().catch(() => undefined);
     pairingError = null;
     await persist();

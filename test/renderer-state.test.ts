@@ -1341,6 +1341,28 @@ it('saves Auto-select Skills from Settings and restores it on state push', async
   expect(toggle.checked).toBe(false);
 });
 
+it('applies the unattended VPS preset once and saves it as ordinary settings', async () => {
+  const mounted = await mountChat();
+  const w = mounted.window;
+  const toggle = w.document.getElementById('unattendedVpsMode') as HTMLInputElement;
+  expect(toggle.checked).toBe(false);
+  toggle.checked = true;
+  toggle.dispatchEvent(new w.Event('change', { bubbles: true }));
+  await vi.waitFor(() => expect(mounted.calls).toHaveLength(1));
+  const saved = mounted.calls[0];
+  expect(saved.connectorSuffix).toBe('VPS');
+  expect(saved.ui).toMatchObject({
+    unattendedVpsMode: true,
+    autoConnect: true,
+    autoContinue: true,
+    backgroundChats: true,
+    autoRefreshPlugins: true,
+    browserOnly: false
+  });
+  expect(saved.multiAgent.enabled).toBe(mounted.state.config.multiAgent.enabled);
+  expect(saved.goal.enabled).toBe(mounted.state.config.goal.enabled);
+});
+
 it('saves and restores the global worker admission cap from Settings', async () => {
   const mounted = await mountChat();
   const w = mounted.window;
